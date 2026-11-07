@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sellers.json монитор</title>
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--text:#1b1f24;--muted:#6b7280;--line:#e5e7eb;--accent:#2563eb;--add:#16a34a;--del:#dc2626;--warn:#d97706}
+@media (prefers-color-scheme:dark){:root{--bg:#0f1115;--card:#171a21;--text:#e6e8eb;--muted:#9aa3ae;--line:#2a2f3a;--accent:#60a5fa;--add:#4ade80;--del:#f87171;--warn:#fbbf24;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;font:14px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--text)}
+.wrap{max-width:1200px;margin:0 auto;padding:20px 16px 40px}
+h1{font-size:22px;margin:0 0 4px}
+.sub{color:var(--muted);margin-bottom:18px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px}
+.card .n{font-size:26px;font-weight:700}
+.card .l{color:var(--muted);font-size:13px}
+.add{color:var(--add)}.del{color:var(--del)}
+.tabs{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
+.tab{border:1px solid var(--line);background:var(--card);color:var(--text);padding:8px 14px;border-radius:999px;cursor:pointer;font:inherit}
+.tab.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+select,input{font:inherit;padding:8px 10px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--text)}
+input[type=search]{flex:1;min-width:180px}
+button.btn{font:inherit;padding:8px 12px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--text);cursor:pointer}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.tablewrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);white-space:nowrap}
+th{font-size:12px;text-transform:uppercase;letter-spacing:.03em;color:var(--muted);cursor:pointer;user-select:none;position:sticky;top:0;background:var(--card)}
+td.owner{white-space:normal;min-width:160px}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.pill{display:inline-block;padding:2px 8px;border-radius:999px;font-size:12px;border:1px solid var(--line)}
+.st-OK,.st-BASELINE{color:var(--add)}.st-ERROR{color:var(--del)}.st-SUSPICIOUS,.st-EMPTY{color:var(--warn)}
+.bars{padding:14px}
+.bar{display:grid;grid-template-columns:170px 1fr 60px;align-items:center;gap:10px;margin:6px 0;font-size:13px}
+.bar .t{height:10px;background:var(--line);border-radius:6px;overflow:hidden}
+.bar .f{height:100%;background:var(--accent)}
+.foot{color:var(--muted);padding:10px 12px;font-size:13px;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.empty{padding:30px;text-align:center;color:var(--muted)}
+@media(max-width:600px){.bar{grid-template-columns:110px 1fr 44px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Монитор sellers.json</h1>
+  <div class="sub" id="updated"></div>
+
+  <div class="cards" id="cards"></div>
+
+  <div class="tabs">
+    <button class="tab on" data-tab="added">Новые сайты</button>
+    <button class="tab" data-tab="removed">Удалённые</button>
+    <button class="tab" data-tab="stats">По сетям</button>
+    <button class="tab" data-tab="status">Статус</button>
+  </div>
+
+  <div class="filters" id="filters">
+    <select id="fNet"><option value="">Все сети</option></select>
+    <select id="fPeriod">
+      <option value="1">Последний запуск</option>
+      <option value="7" selected>7 дней</option>
+      <option value="30">30 дней</option>
+      <option value="90">90 дней</option>
+      <option value="0">Всё время</option>
+    </select>
+    <input type="search" id="fq" placeholder="Поиск по сайту или владельцу">
+    <button class="btn" id="csv">Скачать CSV</button>
+  </div>
+
+  <div class="panel" id="panel"></div>
+</div>
+
+<script>
+const DATA = {"last_run": "2026-11-07", "total_sites": 35136, "added": [], "removed": [], "status": [{"network": "Ezoic", "status": "ERROR", "total": null, "added": 0, "removed": 0, "url": null, "message": "https://www.ezoic.com/sellers.json: 404 Client Error: Not Found for url: https://www.ezoic.com/sellers.json"}, {"network": "Freestar", "status": "BASELINE", "total": 722, "added": 0, "removed": 0, "url": "https://freestar.com/sellers.json", "message": null}, {"network": "Journey by Mediavine", "status": "BASELINE", "total": 10837, "added": 0, "removed": 0, "url": "https://www.journeymv.com/sellers.json", "message": null}, {"network": "Mediavine", "status": "BASELINE", "total": 9360, "added": 0, "removed": 0, "url": "https://www.mediavine.com/sellers.json", "message": null}, {"network": "Monumetric", "status": "BASELINE", "total": 746, "added": 0, "removed": 0, "url": "https://www.monumetric.com/sellers.json", "message": null}, {"network": "Newor Media", "status": "BASELINE", "total": 962, "added": 0, "removed": 0, "url": "https://newormedia.com/sellers.json", "message": null}, {"network": "NitroPay", "status": "BASELINE", "total": 846, "added": 0, "removed": 0, "url": "https://nitropay.com/sellers.json", "message": null}, {"network": "Publift", "status": "BASELINE", "total": 2644, "added": 0, "removed": 0, "url": "https://www.publift.com/sellers.json", "message": null}, {"network": "Raptive (AdThrive)", "status": "BASELINE", "total": 7272, "added": 0, "removed": 0, "url": "https://ads.cafemedia.com/sellers.json", "message": null}, {"network": "SHE Media", "status": "BASELINE", "total": 1747, "added": 0, "removed": 0, "url": "https://www.shemedia.com/sellers.json", "message": null}]};
+
+const $ = s => document.querySelector(s);
+let tab = "added", sortKey = "date", sortDir = -1, page = 1;
+const PER = 200;
+
+const nets = [...new Set([...DATA.added, ...DATA.removed].map(r => r.network).concat(DATA.status.map(s => s.network)))].sort();
+nets.forEach(n => { const o = document.createElement("option"); o.value = o.textContent = n; $("#fNet").appendChild(o); });
+
+const lastDate = DATA.last_run || "";
+$("#updated").textContent = lastDate ? `Последний запуск: ${lastDate} · сайтов в базе: ${DATA.total_sites.toLocaleString("ru")}` : "Данных пока нет";
+
+function inPeriod(d){
+  const p = +$("#fPeriod").value;
+  if (!p) return true;
+  if (p === 1) return d === lastDate;
+  const from = new Date(lastDate); from.setDate(from.getDate() - p + 1);
+  return new Date(d) >= from;
+}
+function filtered(list){
+  const net = $("#fNet").value, q = $("#fq").value.trim().toLowerCase();
+  return list.filter(r => (!net || r.network === net) && inPeriod(r.date) &&
+    (!q || r.domain.includes(q) || (r.name || "").toLowerCase().includes(q)));
+}
+function cards(){
+  const a = filtered(DATA.added).length, d = filtered(DATA.removed).length;
+  const err = DATA.status.filter(s => !["OK","BASELINE"].includes(s.status)).length;
+  $("#cards").innerHTML = `
+    <div class="card"><div class="n add">+${a.toLocaleString("ru")}</div><div class="l">новых за период</div></div>
+    <div class="card"><div class="n del">−${d.toLocaleString("ru")}</div><div class="l">удалено за период</div></div>
+    <div class="card"><div class="n">${DATA.total_sites.toLocaleString("ru")}</div><div class="l">сайтов в базе</div></div>
+    <div class="card"><div class="n" style="color:${err ? "var(--warn)" : "var(--add)"}">${DATA.status.length - err}/${DATA.status.length}</div><div class="l">сетей отработали</div></div>`;
+}
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+function renderList(list){
+  const rows = filtered(list).sort((x, y) => (x[sortKey] > y[sortKey] ? 1 : x[sortKey] < y[sortKey] ? -1 : 0) * sortDir);
+  if (!rows.length) return `<div class="empty">Ничего не найдено за выбранный период</div>`;
+  const shown = rows.slice(0, page * PER);
+  const th = (k, t) => `<th data-k="${k}">${t}${sortKey === k ? (sortDir > 0 ? " ↑" : " ↓") : ""}</th>`;
+  return `<div class="tablewrap"><table><thead><tr>${th("date","Дата")}${th("network","Сеть")}${th("domain","Сайт")}${th("name","Владелец")}</tr></thead><tbody>${
+    shown.map(r => `<tr><td>${r.date}</td><td><span class="pill">${esc(r.network)}</span></td><td><a href="https://${esc(r.domain)}" target="_blank" rel="noopener">${esc(r.domain)}</a></td><td class="owner">${esc(r.name)}</td></tr>`).join("")
+  }</tbody></table></div><div class="foot"><span>Показано ${shown.length.toLocaleString("ru")} из ${rows.length.toLocaleString("ru")}</span>${shown.length < rows.length ? `<button class="btn" id="more">Показать ещё</button>` : ""}</div>`;
+}
+function renderStats(){
+  const a = filtered(DATA.added), d = filtered(DATA.removed);
+  const by = {}; nets.forEach(n => by[n] = {a:0, d:0});
+  a.forEach(r => by[r.network].a++); d.forEach(r => by[r.network].d++);
+  const max = Math.max(1, ...Object.values(by).map(v => v.a));
+  const list = Object.entries(by).sort((x, y) => y[1].a - x[1].a);
+  return `<div class="bars">${list.map(([n, v]) => `<div class="bar"><span>${esc(n)}</span><div class="t"><div class="f" style="width:${v.a / max * 100}%"></div></div><span><b class="add">+${v.a}</b> <span class="del">−${v.d}</span></span></div>`).join("")}</div>`;
+}
+function renderStatus(){
+  return `<div class="tablewrap"><table><thead><tr><th>Сеть</th><th>Статус</th><th>Сайтов</th><th>Новых</th><th>Удалено</th><th>Комментарий</th></tr></thead><tbody>${
+    DATA.status.map(s => `<tr><td>${esc(s.network)}</td><td class="st-${s.status}">${s.status}</td><td>${s.total ?? "—"}</td><td>${s.added ?? 0}</td><td>${s.removed ?? 0}</td><td class="owner">${esc(s.message || s.url || "")}</td></tr>`).join("")
+  }</tbody></table></div>`;
+}
+function render(){
+  cards();
+  $("#filters").style.display = tab === "status" ? "none" : "flex";
+  $("#panel").innerHTML = tab === "added" ? renderList(DATA.added) : tab === "removed" ? renderList(DATA.removed) : tab === "stats" ? renderStats() : renderStatus();
+}
+
+document.querySelectorAll(".tab").forEach(b => b.onclick = () => {
+  document.querySelectorAll(".tab").forEach(x => x.classList.remove("on")); b.classList.add("on");
+  tab = b.dataset.tab; page = 1; render();
+});
+["#fNet", "#fPeriod"].forEach(s => $(s).onchange = () => { page = 1; render(); });
+$("#fq").oninput = () => { page = 1; render(); };
+$("#panel").addEventListener("click", e => {
+  const th = e.target.closest("th[data-k]");
+  if (th) { const k = th.dataset.k; sortDir = sortKey === k ? -sortDir : (k === "date" ? -1 : 1); sortKey = k; render(); }
+  if (e.target.id === "more") { page++; render(); }
+});
+$("#csv").onclick = () => {
+  const list = filtered(tab === "removed" ? DATA.removed : DATA.added);
+  const q = v => `"${String(v ?? "").replace(/"/g, '""')}"`;
+  const csv = "\ufeffДата,Сеть,Сайт,Владелец,Seller ID\n" + list.map(r => [r.date, r.network, r.domain, r.name, r.seller_id].map(q).join(",")).join("\n");
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([csv], {type: "text/csv"}));
+  a.download = `${tab === "removed" ? "removed" : "new"}_sites.csv`; a.click();
+};
+render();
+</script>
+</body>
+</html>
