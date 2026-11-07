@@ -8,11 +8,17 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: sellers-monitor   # не запускать два прогона одновременно
+  cancel-in-progress: false
+
 jobs:
   run:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v5
+        with:
+          ref: main          # всегда свежая версия, даже при Re-run
       - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
