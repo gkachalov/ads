@@ -1,0 +1,33 @@
+name: Daily sellers.json check
+
+on:
+  schedule:
+    - cron: "0 6 * * *"   # каждый день в 06:00 UTC
+  workflow_dispatch:       # ручной запуск кнопкой
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sellers-monitor   # не запускать два прогона одновременно
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: main          # всегда свежая версия, даже при Re-run
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+      - run: python monitor.py --export-all
+      - name: Commit results
+        run: |
+          git config user.name "sellers-bot"
+          git config user.email "sellers-bot@users.noreply.github.com"
+          git add sellers.db sellers_changes.xlsx all_sites.xlsx docs
+          git diff --cached --quiet || git commit -m "Update $(date -u +%F)"
+          git push
