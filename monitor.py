@@ -250,7 +250,7 @@ def export_changes(conn):
     ws = wb.create_sheet("Статус сетей")
     write_sheet(ws, ["Дата", "Сеть", "Статус", "Сайтов", "Новых", "Удалено", "URL", "Сообщение"],
                 conn.execute("SELECT run_date, network, status, total, added, removed, url, message "
-                             "FROM run_log WHERE run_date = (SELECT MAX(run_date) FROM run_log) "
+                             "FROM run_log WHERE rowid IN (SELECT MAX(rowid) FROM run_log GROUP BY network) "
                              "ORDER BY network"),
                 [12, 22, 12, 10, 8, 9, 42, 50])
     wb.save(CHANGES_XLSX)
@@ -284,7 +284,8 @@ def export_dashboard(conn):
         "removed": rows("SELECT date_removed, network, domain, name, seller_id FROM removed_sites"),
         "status": [dict(zip(["network", "status", "total", "added", "removed", "url", "message"], r))
                    for r in conn.execute("SELECT network, status, total, added, removed, url, message "
-                                         "FROM run_log WHERE run_date=? ORDER BY network", (last,))],
+                                         "FROM run_log WHERE rowid IN (SELECT MAX(rowid) FROM run_log GROUP BY network) "
+                                         "ORDER BY network")],
     }
     payload = json.dumps(data, ensure_ascii=False).replace("</", "<\\/")
     DASHBOARD.parent.mkdir(exist_ok=True)
