@@ -5,6 +5,19 @@
     "BOTH"
   ],
   "max_removal_ratio": 0.3,
+  "traffic": {
+    "_comment": "DataForSEO: органический трафик Google для новых сайтов. location_code 2840 = США; null — все страны",
+    "enabled": true,
+    "location_code": 2840,
+    "language_code": "en",
+    "max_domains_per_run": 3000
+  },
+  "whois": {
+    "_comment": "Дата регистрации домена через RDAP (бесплатно), запасной вариант — WHOIS",
+    "enabled": true,
+    "max_domains_per_run": 500,
+    "delay_sec": 0.5
+  },
   "networks": [
     {
       "name": "Mediavine",

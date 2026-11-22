@@ -24,6 +24,9 @@ jobs:
           python-version: "3.12"
       - run: pip install -r requirements.txt
       - run: python monitor.py --export-all
+        env:
+          DATAFORSEO_LOGIN: ${{ secrets.DATAFORSEO_LOGIN }}
+          DATAFORSEO_PASSWORD: ${{ secrets.DATAFORSEO_PASSWORD }}
       - name: Commit results
         run: |
           git config user.name "sellers-bot"

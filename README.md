@@ -50,9 +50,31 @@
 
 ---
 
+## Трафик новых сайтов (DataForSEO)
+Для каждого нового сайта скрипт подтягивает оценку органического трафика Google в месяц и число ключей.
+Каждый сайт проверяется один раз, в день его появления.
+
+1. Зарегистрируйся на dataforseo.com и пополни баланс.
+2. Логин и пароль API: app.dataforseo.com → API Access (это НЕ пароль от личного кабинета).
+3. В репозитории: **Settings → Secrets and variables → Actions → New repository secret**:
+   - `DATAFORSEO_LOGIN` — логин API;
+   - `DATAFORSEO_PASSWORD` — пароль API.
+4. Run workflow. В логе появится строка «Трафик: обновлено N сайтов, стоимость $…».
+
+Без ключей мониторинг работает как раньше, просто без трафика.
+Настройки — блок `traffic` в networks.json: `location_code` 2840 = США (null — все страны), `max_domains_per_run` — потолок доменов за запуск.
+Чтобы пересчитать трафик заново, обнули колонку `traffic_date` в базе.
+
+## Дата регистрации домена
+Для каждого нового сайта скрипт узнаёт дату регистрации домена — бесплатно, без ключей.
+Сначала через RDAP (современная замена WHOIS, официальный список серверов IANA), для зон без RDAP — через классический WHOIS.
+Поддомены (blog.site.com) проверяются по основному домену. Если сервер временно недоступен — сайт перепроверится в следующий запуск.
+Настройки — блок `whois` в networks.json.
+
 ## Запуск на своём компьютере/сервере
     pip install -r requirements.txt
     python monitor.py --check        # какие URL отвечают
+    export DATAFORSEO_LOGIN=... DATAFORSEO_PASSWORD=...   # по желанию
     python monitor.py --export-all   # запуск
 Cron:  `0 9 * * * cd /path/to/sellers-monitor && python3 monitor.py`
 
